@@ -1,0 +1,68 @@
+---
+-
+  name: Update Go Plgchain binary
+  hosts:
+    - all
+  become: yes
+  tasks:
+    ## update & upgrade system
+    - name: Update & upgrade system
+      apt:
+        upgrade: yes
+        update_cache: yes
+
+    ## stop go-plgchain service
+    - name: Stop go plgchain service
+      systemd:
+        state: stopped
+        name: go-plgchain
+
+    ## get the latest release
+    - name: Get latest release link
+      uri:
+        url: https://api.github.com/repos/plingatech/go-plgchain/releases/latest
+        return_content: true
+      register: edge_release
+
+    ## download the latest release
+    - name: Download latest Go Plgchain release
+      get_url:
+        url: "{{ edge_release.json.assets[3].browser_download_url }}"
+        dest: /tmp/go-plgchain.tar.gz
+        force: yes
+
+    ## create temp dir for release
+    - name: Create temp dir for Go Plgchain release
+      file:
+        path: /tmp/go-plgchain
+        state: directory
+
+    ## unpack release tar
+    - name: Unpack Go Plgchain release
+      unarchive:
+        remote_src: yes
+        src: /tmp/go-plgchain.tar.gz
+        dest: /tmp/go-plgchain
+
+    ## set go-plgchain to PATH
+    - name: Place Go Plgchain binary to PATH
+      copy:
+        remote_src: yes
+        src: /tmp/go-plgchain/go-plgchain
+        dest: /usr/local/bin/
+        mode: a+x
+        force: yes
+
+    ## remove release temp dir
+    - name: Remove temp Go Plgchain release dir
+      file:
+        state: absent
+        path: /tmp/go-plgchain
+
+    ## start go plgchain service
+    - name: Start go-plgchain service
+      systemd:
+        state: restarted
+        name: go-plgchain
+        daemon_reload: yes
+        enabled: yes

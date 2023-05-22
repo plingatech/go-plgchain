@@ -1,0 +1,34 @@
+peers.json
+genesis.json
+manifest.json
+secretsManagerConfig.json
+*-packr.go
+config*.json
+go-plgchain
+goplgchain
+
+bin/
+
+test-chain*
+test-rootchain*
+go-plgchain-chain*
+.idea
+
+# Exclude the build .exe file from version control
+dist/
+main.exe
+main
+
+# MacOS Leftovers
+.DS_Store
+.vscode
+
+# exclude build folder
+artifacts
+node_modules
+
+# Log files
+*.log
+
+vendor/
+coverage.out
