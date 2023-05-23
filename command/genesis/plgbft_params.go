@@ -9,6 +9,7 @@ import (
 
 	"github.com/plingatech/go-plgchain/consensus/plgbft/contractsapi"
 	"github.com/plingatech/go-plgchain/consensus/plgbft/contractsapi/artifact"
+	"github.com/plingatech/go-plgchain/helper/common"
 
 	"github.com/plingatech/go-plgchain/chain"
 	"github.com/plingatech/go-plgchain/command"
@@ -88,7 +89,7 @@ func (p *genesisParams) generatePlgBftChainConfig(o command.OutputFormatter) err
 
 	plgBftConfig := &plgbft.PlgBFTConfig{
 		InitialValidatorSet: manifest.GenesisValidators,
-		BlockTime:           p.blockTime,
+		BlockTime:           common.Duration{Duration: p.blockTime},
 		EpochSize:           p.epochSize,
 		SprintSize:          p.sprintSize,
 		EpochReward:         p.epochReward,

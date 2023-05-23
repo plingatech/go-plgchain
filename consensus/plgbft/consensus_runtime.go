@@ -310,7 +310,7 @@ func (c *consensusRuntime) FSM() error {
 		parent,
 		types.Address(c.config.Key.Address()),
 		c.config.txPool,
-		c.config.PlgBFTConfig.BlockTime,
+		c.config.PlgBFTConfig.BlockTime.Duration,
 		c.logger,
 	)
 

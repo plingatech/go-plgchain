@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/plingatech/go-plgchain/command/server/config"
 	ibftSigner "github.com/plingatech/go-plgchain/consensus/ibft/signer"
 	"github.com/plingatech/go-plgchain/e2e/framework"
 	"github.com/plingatech/go-plgchain/helper/tests"
@@ -19,6 +18,8 @@ import (
 // TestIbft_Transfer sends a transfer transaction (EOA -> EOA)
 // and verifies it was mined
 func TestIbft_Transfer(t *testing.T) {
+	const defaultBlockTime uint64 = 2
+
 	testCases := []struct {
 		name            string
 		blockTime       uint64
@@ -27,7 +28,7 @@ func TestIbft_Transfer(t *testing.T) {
 	}{
 		{
 			name:            "default block time",
-			blockTime:       config.DefaultBlockTime,
+			blockTime:       defaultBlockTime,
 			ibftBaseTimeout: 0, // use default value
 			validatorType:   validators.ECDSAValidatorType,
 		},
@@ -39,7 +40,7 @@ func TestIbft_Transfer(t *testing.T) {
 		},
 		{
 			name:            "with BLS",
-			blockTime:       config.DefaultBlockTime,
+			blockTime:       defaultBlockTime,
 			ibftBaseTimeout: 0, // use default value
 			validatorType:   validators.BLSValidatorType,
 		},

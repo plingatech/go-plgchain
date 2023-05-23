@@ -15,6 +15,7 @@ import (
 	bls "github.com/plingatech/go-plgchain/consensus/plgbft/signer"
 	"github.com/plingatech/go-plgchain/consensus/plgbft/wallet"
 	"github.com/plingatech/go-plgchain/contracts"
+	"github.com/plingatech/go-plgchain/helper/common"
 	"github.com/plingatech/go-plgchain/types"
 	"github.com/plingatech/plg-ibft/messages/proto"
 	"github.com/stretchr/testify/assert"
@@ -447,7 +448,7 @@ func Test_NewConsensusRuntime(t *testing.T) {
 		},
 		EpochSize:  10,
 		SprintSize: 10,
-		BlockTime:  2 * time.Second,
+		BlockTime:  common.Duration{Duration: 2 * time.Second},
 	}
 
 	validators := newTestValidators(t, 3).getPublicIdentities()
