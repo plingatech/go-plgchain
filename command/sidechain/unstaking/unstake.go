@@ -48,6 +48,13 @@ func setFlags(cmd *cobra.Command) {
 	)
 
 	cmd.Flags().BoolVar(
+		&params.ether,
+		sidechainHelper.EtherFlag,
+		false,
+		"indicates if its a ether unit default wei",
+	)
+
+	cmd.Flags().BoolVar(
 		&params.self,
 		sidechainHelper.SelfFlag,
 		false,
@@ -70,6 +77,7 @@ func setFlags(cmd *cobra.Command) {
 
 	cmd.MarkFlagsMutuallyExclusive(sidechainHelper.SelfFlag, undelegateAddressFlag)
 	cmd.MarkFlagsMutuallyExclusive(plgbftsecrets.AccountDirFlag, plgbftsecrets.AccountConfigFlag)
+	cmd.MarkFlagsMutuallyExclusive(sidechainHelper.EtherFlag)
 }
 
 func runPreRun(cmd *cobra.Command, _ []string) error {
@@ -95,13 +103,22 @@ func runCommand(cmd *cobra.Command, _ []string) error {
 
 	var encoded []byte
 	if params.self {
-		encoded, err = contractsapi.ChildValidatorSet.Abi.Methods["unstake"].Encode([]interface{}{params.amount})
+		if params.ether {
+			encoded, err = contractsapi.ChildValidatorSet.Abi.Methods["unstake"].Encode([]interface{}{params.amount * 1000000000000000000})
+		} else {
+			encoded, err = contractsapi.ChildValidatorSet.Abi.Methods["unstake"].Encode([]interface{}{params.amount})
+		}
 		if err != nil {
 			return err
 		}
 	} else {
-		encoded, err = contractsapi.ChildValidatorSet.Abi.Methods["undelegate"].Encode(
-			[]interface{}{ethgo.HexToAddress(params.undelegateAddress), params.amount})
+		if params.ether {
+			encoded, err = contractsapi.ChildValidatorSet.Abi.Methods["undelegate"].Encode(
+				[]interface{}{ethgo.HexToAddress(params.undelegateAddress), params.amount * 1000000000000000000})
+		} else {
+			encoded, err = contractsapi.ChildValidatorSet.Abi.Methods["undelegate"].Encode(
+				[]interface{}{ethgo.HexToAddress(params.undelegateAddress), params.amount})
+		}
 		if err != nil {
 			return err
 		}

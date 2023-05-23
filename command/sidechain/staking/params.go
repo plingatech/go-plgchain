@@ -18,6 +18,7 @@ type stakeParams struct {
 	jsonRPC         string
 	amount          uint64
 	self            bool
+	ether           bool
 	delegateAddress string
 }
 

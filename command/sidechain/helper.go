@@ -19,6 +19,7 @@ import (
 
 const (
 	SelfFlag   = "self"
+	EtherFlag  = "ether"
 	AmountFlag = "amount"
 
 	DefaultGasPrice = 1879048192 // 0x70000000

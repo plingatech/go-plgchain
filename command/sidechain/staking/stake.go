@@ -51,6 +51,13 @@ func setFlags(cmd *cobra.Command) {
 	)
 
 	cmd.Flags().BoolVar(
+		&params.ether,
+		sidechainHelper.EtherFlag,
+		false,
+		"indicates if its a ether unit default wei",
+	)
+
+	cmd.Flags().BoolVar(
 		&params.self,
 		sidechainHelper.SelfFlag,
 		false,
@@ -73,6 +80,7 @@ func setFlags(cmd *cobra.Command) {
 
 	cmd.MarkFlagsMutuallyExclusive(sidechainHelper.SelfFlag, delegateAddressFlag)
 	cmd.MarkFlagsMutuallyExclusive(plgbftsecrets.AccountDirFlag, plgbftsecrets.AccountConfigFlag)
+	cmd.MarkFlagsMutuallyExclusive(sidechainHelper.EtherFlag)
 }
 
 func runPreRun(cmd *cobra.Command, _ []string) error {
@@ -111,11 +119,18 @@ func runCommand(cmd *cobra.Command, _ []string) error {
 		}
 	}
 
+	multiplier := big.NewInt(1000000000000000000)
+	value := new(big.Int).SetUint64(params.amount)
+
+	if params.ether {
+		value = new(big.Int).Mul(new(big.Int).SetUint64(params.amount), multiplier)
+	}
+
 	txn := &ethgo.Transaction{
 		From:     validatorAccount.Ecdsa.Address(),
 		Input:    encoded,
 		To:       (*ethgo.Address)(&contracts.ValidatorSetContract),
-		Value:    new(big.Int).SetUint64(params.amount),
+		Value:    value,
 		GasPrice: sidechainHelper.DefaultGasPrice,
 	}
 

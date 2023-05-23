@@ -18,6 +18,7 @@ type unstakeParams struct {
 	jsonRPC           string
 	amount            uint64
 	self              bool
+	ether             bool
 	undelegateAddress string
 }
 
