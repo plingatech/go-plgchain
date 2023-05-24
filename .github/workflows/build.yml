@@ -24,7 +24,7 @@ jobs:
       - name: Setup Go environment
         uses: actions/setup-go@v3
         with:
-          go-version: 1.18.x
+          go-version: 1.19.x
 
       - name: Build Go Plgchain
         run: go build -tags netgo -ldflags="-s -w -linkmode external -extldflags "-static" -X \"github.com/plingatech/go-plgchain/versioning.Version=${GITHUB_REF_NAME}\" -X \"github.com/plingatech/go-plgchain/versioning.Commit=${GITHUB_SHA}\"" && tar -czvf go-plgchain.tar.gz go-plgchain
