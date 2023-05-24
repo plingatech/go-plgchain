@@ -43,4 +43,3 @@ var (
 	// AllowListTransactionsAddr is the address of the transactions allow list
 	AllowListTransactionsAddr = types.StringToAddress("0x0200000000000000000000000000000000000002")
 )
-)
