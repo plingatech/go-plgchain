@@ -143,15 +143,15 @@ func GenesisPostHookFactory(config *chain.Chain, engineName string) func(txn *st
 			rootNativeERC20Token = plgBFTConfig.Bridge.RootNativeERC20Addr
 		}
 
-		if plgBFTConfig.MintableERC20Token {
+		if plgBFTConfig.MintableNativeToken {
 			// initialize NativeERC20Mintable SC
 			params := &contractsapi.InitializeNativeERC20MintableFn{
 				Predicate_: contracts.ChildERC20PredicateContract,
 				Owner_:     plgBFTConfig.Governance,
 				RootToken_: rootNativeERC20Token,
-				Name_:      nativeTokenName,
-				Symbol_:    nativeTokenSymbol,
-				Decimals_:  nativeTokenDecimals,
+				Name_:      plgBFTConfig.NativeTokenConfig.Name,
+				Symbol_:    plgBFTConfig.NativeTokenConfig.Symbol,
+				Decimals_:  plgBFTConfig.NativeTokenConfig.Decimals,
 			}
 
 			input, err := params.EncodeAbi()
@@ -165,9 +165,9 @@ func GenesisPostHookFactory(config *chain.Chain, engineName string) func(txn *st
 		} else {
 			// initialize NativeERC20 SC
 			params := &contractsapi.InitializeNativeERC20Fn{
-				Name_:      nativeTokenName,
-				Symbol_:    nativeTokenSymbol,
-				Decimals_:  nativeTokenDecimals,
+				Name_:      plgBFTConfig.NativeTokenConfig.Name,
+				Symbol_:    plgBFTConfig.NativeTokenConfig.Symbol,
+				Decimals_:  plgBFTConfig.NativeTokenConfig.Decimals,
 				RootToken_: rootNativeERC20Token,
 				Predicate_: contracts.ChildERC20PredicateContract,
 			}

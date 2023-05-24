@@ -17,12 +17,6 @@ const (
 	minDelegation = 1
 )
 
-var (
-	nativeTokenName     = "Plinga"
-	nativeTokenSymbol   = "PLINGA"
-	nativeTokenDecimals = uint8(18)
-)
-
 // getInitChildValidatorSetInput builds input parameters for ChildValidatorSet SC initialization
 func getInitChildValidatorSetInput(plgBFTConfig PlgBFTConfig) ([]byte, error) {
 	apiValidators := make([]*contractsapi.ValidatorInit, len(plgBFTConfig.InitialValidatorSet))

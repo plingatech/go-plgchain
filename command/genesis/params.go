@@ -3,6 +3,9 @@ package genesis
 import (
 	"errors"
 	"fmt"
+	"math"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/plingatech/go-plgchain/chain"
@@ -10,6 +13,7 @@ import (
 	"github.com/plingatech/go-plgchain/command/helper"
 	"github.com/plingatech/go-plgchain/consensus/ibft"
 	"github.com/plingatech/go-plgchain/consensus/ibft/fork"
+	"github.com/plingatech/go-plgchain/consensus/ibft/plgbft"
 	"github.com/plingatech/go-plgchain/consensus/ibft/signer"
 	"github.com/plingatech/go-plgchain/contracts/staking"
 	stakingHelper "github.com/plingatech/go-plgchain/helper/staking"
@@ -19,17 +23,23 @@ import (
 )
 
 const (
-	dirFlag           = "dir"
-	nameFlag          = "name"
-	premineFlag       = "premine"
-	chainIDFlag       = "chain-id"
-	epochSizeFlag     = "epoch-size"
-	epochRewardFlag   = "epoch-reward"
-	blockGasLimitFlag = "block-gas-limit"
-	posFlag           = "pos"
-	minValidatorCount = "min-validator-count"
-	maxValidatorCount = "max-validator-count"
-	mintableTokenFlag = "mintable-native-token"
+	dirFlag               = "dir"
+	nameFlag              = "name"
+	premineFlag           = "premine"
+	chainIDFlag           = "chain-id"
+	epochSizeFlag         = "epoch-size"
+	epochRewardFlag       = "epoch-reward"
+	blockGasLimitFlag     = "block-gas-limit"
+	posFlag               = "pos"
+	minValidatorCount     = "min-validator-count"
+	maxValidatorCount     = "max-validator-count"
+	mintableTokenFlag     = "mintable-native-token"
+	nativeTokenConfigFlag = "native-token-config"
+
+	defaultNativeTokenName     = "Plinga"
+	defaultNativeTokenSymbol   = "PLINGA"
+	defaultNativeTokenDecimals = uint8(18)
+	nativeTokenParamsNumber    = 3
 )
 
 // Legacy flags that need to be preserved for running clients
@@ -45,6 +55,8 @@ var (
 	errValidatorsNotSpecified = errors.New("validator information not specified")
 	errUnsupportedConsensus   = errors.New("specified consensusRaw not supported")
 	errInvalidEpochSize       = errors.New("epoch size must be greater than 1")
+	errInvalidTokenParams     = errors.New("native token params were not submitted in proper" +
+		" format <name:symbol:decimals count>")
 )
 
 type genesisParams struct {
@@ -94,7 +106,9 @@ type genesisParams struct {
 	transactionsAllowListAdmin       []string
 	transactionsAllowListEnabled     []string
 
-	mintableNativeToken bool
+	mintableNativeToken  bool
+	nativeTokenConfigRaw string
+	nativeTokenConfig    *plgbft.TokenConfig
 }
 
 func (p *genesisParams) validateFlags() error {
@@ -382,6 +396,49 @@ func (p *genesisParams) predeployStakingSC() (*chain.GenesisAccount, error) {
 	}
 
 	return stakingAccount, nil
+}
+
+// extractNativeTokenMetadata parses provided native token metadata (such as name, symbol and decimals count)
+func (p *genesisParams) extractNativeTokenMetadata() error {
+	if p.nativeTokenConfigRaw == "" {
+		p.nativeTokenConfig = &plgbft.TokenConfig{
+			Name:     defaultNativeTokenName,
+			Symbol:   defaultNativeTokenSymbol,
+			Decimals: defaultNativeTokenDecimals,
+		}
+
+		return nil
+	}
+
+	params := strings.Split(p.nativeTokenConfigRaw, ":")
+	if len(params) != nativeTokenParamsNumber { // 3 parameters
+		return errInvalidTokenParams
+	}
+
+	p.nativeTokenConfig = &plgbft.TokenConfig{
+		Name:     defaultNativeTokenName,
+		Symbol:   defaultNativeTokenSymbol,
+		Decimals: defaultNativeTokenDecimals,
+	}
+
+	p.nativeTokenConfig.Name = strings.TrimSpace(params[0])
+	if p.nativeTokenConfig.Name == "" {
+		return errInvalidTokenParams
+	}
+
+	p.nativeTokenConfig.Symbol = strings.TrimSpace(params[1])
+	if p.nativeTokenConfig.Symbol == "" {
+		return errInvalidTokenParams
+	}
+
+	decimals, err := strconv.ParseUint(strings.TrimSpace(params[2]), 10, 8)
+	if err != nil || decimals > math.MaxUint8 {
+		return errInvalidTokenParams
+	}
+
+	p.nativeTokenConfig.Decimals = uint8(decimals)
+
+	return nil
 }
 
 func (p *genesisParams) getResult() command.CommandResult {

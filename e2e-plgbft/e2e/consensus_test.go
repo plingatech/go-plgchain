@@ -7,12 +7,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+	"github.com/umbracle/ethgo"
+	"github.com/umbracle/ethgo/abi"
+
 	"github.com/plingatech/go-plgchain/command/genesis"
 	"github.com/plingatech/go-plgchain/command/sidechain"
 	"github.com/plingatech/go-plgchain/consensus/plgbft"
 	"github.com/plingatech/go-plgchain/consensus/plgbft/contractsapi"
 	"github.com/plingatech/go-plgchain/contracts"
 	"github.com/plingatech/go-plgchain/e2e-plgbft/framework"
+	"github.com/plingatech/go-plgchain/helper/hex"
 	"github.com/plingatech/go-plgchain/txrelayer"
 	"github.com/plingatech/go-plgchain/types"
 	"github.com/stretchr/testify/require"
@@ -612,7 +617,28 @@ func TestE2E_Consensus_MintableERC20NativeToken(t *testing.T) {
 		validatorCount = 5
 		epochSize      = 5
 		minterPath     = "test-chain-1"
+
+		tokenName   = "Test Coin"
+		tokenSymbol = "TEST"
+		decimals    = uint8(5)
 	)
+
+	nativeTokenAddr := ethgo.Address(contracts.NativeERC20TokenContract)
+
+	queryNativeERC20Metadata := func(funcName string, abiType *abi.Type, relayer txrelayer.TxRelayer) interface{} {
+		valueHex, err := ABICall(relayer, contractsapi.NativeERC20Mintable, nativeTokenAddr, ethgo.ZeroAddress, funcName)
+		require.NoError(t, err)
+
+		valueRaw, err := hex.DecodeHex(valueHex)
+		require.NoError(t, err)
+
+		var decodedResult map[string]interface{}
+
+		err = abiType.DecodeStruct(valueRaw, &decodedResult)
+		require.NoError(t, err)
+
+		return decodedResult["0"]
+	}
 
 	validatorsAddrs := make([]types.Address, validatorCount)
 	initialStake := ethgo.Gwei(1)
@@ -645,14 +671,28 @@ func TestE2E_Consensus_MintableERC20NativeToken(t *testing.T) {
 
 	cluster.WaitForReady(t)
 
-	// send mint transactions
+	// initialize tx relayer
 	relayer, err := txrelayer.NewTxRelayer(txrelayer.WithClient(targetJSONRPC))
 	require.NoError(t, err)
+
+	// check are native token metadata correctly initialized
+	stringABIType := abi.MustNewType("tuple(string)")
+	uint8ABIType := abi.MustNewType("tuple(uint8)")
+
+	name := queryNativeERC20Metadata("name", stringABIType, relayer)
+	require.Equal(t, tokenName, name)
+
+	symbol := queryNativeERC20Metadata("symbol", stringABIType, relayer)
+	require.Equal(t, tokenSymbol, symbol)
+
+	decimalsCount := queryNativeERC20Metadata("decimals", uint8ABIType, relayer)
+	require.Equal(t, decimals, decimalsCount)
+
+	// send mint transactions
 
 	mintFn, exists := contractsapi.NativeERC20Mintable.Abi.Methods["mint"]
 	require.True(t, exists)
 
-	nativeTokenAddr := ethgo.Address(contracts.NativeERC20TokenContract)
 	mintAmount := ethgo.Ether(10)
 
 	// make sure minter account can mint tokens

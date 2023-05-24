@@ -94,10 +94,11 @@ func (p *genesisParams) generatePlgBftChainConfig(o command.OutputFormatter) err
 		SprintSize:          p.sprintSize,
 		EpochReward:         p.epochReward,
 		// use 1st account as governance address
-		Governance:         manifest.GenesisValidators[0].Address,
-		Bridge:             bridge,
-		InitialTrieRoot:    types.StringToHash(p.initialStateRoot),
-		MintableERC20Token: p.mintableNativeToken,
+		Governance:          manifest.GenesisValidators[0].Address,
+		Bridge:              bridge,
+		InitialTrieRoot:     types.StringToHash(p.initialStateRoot),
+		MintableNativeToken: p.mintableNativeToken,
+		NativeTokenConfig:   p.nativeTokenConfig,
 	}
 
 	chainConfig := &chain.Chain{
